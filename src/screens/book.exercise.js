@@ -7,6 +7,7 @@ import React from 'react'
 import {client} from 'utils/api-client'
 import * as mq from 'styles/media-queries'
 import {useAsync} from 'utils/hooks'
+import {useParams} from 'react-router-dom'
 import bookPlaceholderSvg from 'assets/book-placeholder.svg'
 
 const loadingBook = {
@@ -22,9 +23,9 @@ function BookScreen({user}) {
   // 🐨 use the useParams hook. This'll give you back an object with all the
   // params you've specified in the route definition. You should be able to get
   // the bookId from that.
-
+  const {bookId} = useParams()
   // 💣 remove this, we're getting the bookId from useParams instead.
-  const bookId = '??'
+  // const bookId = '??'
   const {data, run} = useAsync()
 
   React.useEffect(() => {

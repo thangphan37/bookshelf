@@ -13,6 +13,7 @@ import {client} from './utils/api-client'
 import {useAsync} from './utils/hooks'
 import {AuthenticatedApp} from './authenticated-app'
 import {UnauthenticatedApp} from './unauthenticated-app'
+import {BrowserRouter as Router} from 'react-router-dom'
 
 async function getUser() {
   let user = null
@@ -75,7 +76,9 @@ function App() {
     const props = {user, login, register, logout}
     // 🐨 wrap the BrowserRouter around the AuthenticatedApp
     return user ? (
-      <AuthenticatedApp {...props} />
+      <Router>
+        <AuthenticatedApp {...props} />
+      </Router>
     ) : (
       <UnauthenticatedApp {...props} />
     )
