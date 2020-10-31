@@ -5,10 +5,10 @@ import React from 'react'
 import Tooltip from '@reach/tooltip'
 import {FaSearch, FaTimes} from 'react-icons/fa'
 // 🐨 you'll need useQuery from 'react-query'
-import {useAsync} from 'utils/hooks'
-import {client} from 'utils/api-client'
 import * as colors from 'styles/colors'
 import {BookRow} from 'components/book-row'
+import {useBookSearch, refetchBookSearchQuery} from 'utils/books'
+import {queryCache} from 'react-query'
 import {BookListUL, Spinner, Input} from 'components/lib'
 import bookPlaceholderSvg from 'assets/book-placeholder.svg'
 
@@ -33,20 +33,31 @@ function DiscoverBooksScreen({user}) {
   // the queryKey should be ['bookSearch', {query}]
   // the queryFn should be the same thing we have in the run function below
   // you'll get back the same stuff you get from useAsync, (except the run function)
-  const {data, error, run, isLoading, isError, isSuccess} = useAsync()
+  // const {data, error, run, isLoading, isError, isSuccess} = useAsync()
+  const {data, error, isLoading, isError, isSuccess} = useBookSearch(
+    query,
+    user,
+  )
 
   const books = data ?? loadingBooks
 
+  // React.useEffect(() => {
+  //   if (!queried) {
+  //     return
+  //   }
+  //   run(
+  //     client(`books?query=${encodeURIComponent(query)}`, {
+  //       token: user.token,
+  //     }).then(data => data.books),
+  //   )
+  // }, [query, queried, run, user.token])
+
   React.useEffect(() => {
-    if (!queried) {
-      return
+    return () => {
+      queryCache.removeQueries('bookSearch')
+      refetchBookSearchQuery(query, user)
     }
-    run(
-      client(`books?query=${encodeURIComponent(query)}`, {
-        token: user.token,
-      }).then(data => data.books),
-    )
-  }, [query, queried, run, user.token])
+  }, [query, user])
 
   function handleSearchSubmit(event) {
     event.preventDefault()

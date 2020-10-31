@@ -5,6 +5,7 @@ import {jsx} from '@emotion/core'
 // 🐨 and client from 'utils/api-client'
 import {BookListUL} from './lib'
 import {BookRow} from './book-row'
+import {useListItems} from 'utils/list-items'
 
 function ListItemList({
   user,
@@ -17,7 +18,9 @@ function ListItemList({
   // queryFn should call the 'list-items' endpoint
 
   // 🐨 assign this to the list items you get back from react-query
-  const listItems = null
+  const result = useListItems(user)
+  // const listItems = null
+  const listItems = result
 
   const filteredListItems = listItems?.filter(filterListItems)
 

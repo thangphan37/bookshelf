@@ -11,6 +11,7 @@ import {client} from './utils/api-client'
 import {useAsync} from './utils/hooks'
 import {AuthenticatedApp} from './authenticated-app'
 import {UnauthenticatedApp} from './unauthenticated-app'
+import {queryCache} from 'react-query'
 
 async function getUser() {
   let user = null
@@ -45,6 +46,7 @@ function App() {
   const logout = () => {
     auth.logout()
     // 🐨 clear the query cache with queryCache.clear()
+    queryCache.clear()
     setData(null)
   }
 
