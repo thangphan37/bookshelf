@@ -76,7 +76,7 @@ function useRefetchBookSearchQuery() {
   return React.useCallback(() => refetchBookSearchQuery(user), [user])
 }
 
-const bookQueryConfig = {
+const bookQueryConfig = {zw
   staleTime: 1000 * 60 * 60,
   cacheTime: 1000 * 60 * 60,
 }
