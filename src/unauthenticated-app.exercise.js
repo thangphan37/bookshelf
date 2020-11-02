@@ -18,6 +18,12 @@ import {
 import {Logo} from './components/logo'
 import {useAuth} from './context/auth-context'
 import {useAsync} from './utils/hooks'
+import {
+  Modal,
+  ModalDismissButton,
+  ModalOpenButton,
+  ModalContents,
+} from 'components/modal'
 
 function LoginForm({onSubmit, submitButton}) {
   const {isLoading, isError, error, run} = useAsync()
@@ -130,20 +136,47 @@ function UnauthenticatedApp() {
              it did when you started, but the extra credits will help clean
              things up a bit.
         */}
-        <LoginFormModal
+        <Modal>
+          <ModalOpenButton>
+            <Button
+              variant="primary"
+              onClick={() => console.log('opening the modal')}
+            >
+              Login
+            </Button>
+          </ModalOpenButton>
+          <ModalContents title="Login" aria-label="Login Form">
+            <LoginForm
+              onSubmit={login}
+              submitButton={<Button variant="primary">Login</Button>}
+            />
+          </ModalContents>
+        </Modal>
+        <Modal>
+          <ModalOpenButton>
+            <Button variant="secondary">Register</Button>
+          </ModalOpenButton>
+          <ModalContents title="Register" aria-label="Register Form">
+            <LoginForm
+              onSubmit={register}
+              submitButton={<Button variant="secondary">Register</Button>}
+            />
+          </ModalContents>
+        </Modal>
+        {/* <LoginFormModal
           onSubmit={login}
           modalTitle="Login"
           modalLabelText="Login form"
           submitButton={<Button variant="primary">Login</Button>}
           openButton={<Button variant="primary">Login</Button>}
-        />
-        <LoginFormModal
+        /> */}
+        {/* <LoginFormModal
           onSubmit={register}
           modalTitle="Register"
           modalLabelText="Registration form"
           submitButton={<Button variant="secondary">Register</Button>}
           openButton={<Button variant="secondary">Register</Button>}
-        />
+        /> */}
       </div>
     </div>
   )

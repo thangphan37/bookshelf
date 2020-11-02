@@ -43,3 +43,60 @@
 // 💰 be sure to forward along the rest of the props (especially children).
 
 // 🐨 don't forget to export all the components here
+/** @jsx jsx */
+import {jsx} from '@emotion/core'
+import React from 'react'
+import {Dialog, CircleButton} from './lib'
+import VisuallyHidden from '@reach/visually-hidden'
+
+const ModalContext = React.createContext()
+const callAll = (...fns) => (...args) => fns.forEach(fn => fn && fn(...args))
+
+function Modal({children}) {
+  const [isOpen, setOpen] = React.useState(false)
+  const value = React.useMemo(() => [isOpen, setOpen], [isOpen])
+  return <ModalContext.Provider value={value}>{children}</ModalContext.Provider>
+}
+
+function ModalDismissButton({children}) {
+  const [, setOpen] = React.useContext(ModalContext)
+  const onClose = () => setOpen(false)
+
+  return React.cloneElement(children, {onClick: onClose})
+}
+
+function ModalOpenButton({children}) {
+  const [, setOpen] = React.useContext(ModalContext)
+  const onOpen = () => setOpen(true)
+  return React.cloneElement(children, {
+    onClick: callAll(onOpen, children.props.onClick),
+  })
+}
+
+function ModalContentsBase({children, ...props}) {
+  const [isOpen, setOpen] = React.useContext(ModalContext)
+  return (
+    <Dialog isOpen={isOpen} onDismiss={() => setOpen(false)} {...props}>
+      {children}
+    </Dialog>
+  )
+}
+
+function ModalContents({title, children, ...props}) {
+  return (
+    <ModalContentsBase {...props}>
+      <ModalDismissButton>
+        <div css={{display: 'flex', justifyContent: 'flex-end'}}>
+          <CircleButton>
+            <VisuallyHidden>Close</VisuallyHidden>
+            <span aria-hidden>×</span>
+          </CircleButton>
+        </div>
+      </ModalDismissButton>
+      <h3 css={{textAlign: 'center', fontSize: '2em'}}>{title}</h3>
+      {children}
+    </ModalContentsBase>
+  )
+}
+
+export {Modal, ModalDismissButton, ModalOpenButton, ModalContents}
