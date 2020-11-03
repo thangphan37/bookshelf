@@ -6,6 +6,7 @@ import * as auth from 'auth-provider'
 import {client} from 'utils/api-client'
 import {useAsync} from 'utils/hooks'
 import {FullPageSpinner, FullPageErrorFallback} from 'components/lib'
+import {queryCache} from 'react-query'
 
 async function getUser() {
   let user = null
@@ -19,9 +20,23 @@ async function getUser() {
   return user
 }
 
+async function getBootstrap() {
+  const token = await auth.getToken()
+  let user = null
+  if (token) {
+    const data = await client('bootstrap', {token})
+    queryCache.setQueryData('list-items', data.listItems)
+    user = data.user
+  }
+
+  return user
+}
+
 const AuthContext = React.createContext()
 AuthContext.displayName = 'AuthContext'
 
+// const userPromise = getUser()
+const bootstrapPromise = getBootstrap()
 function AuthProvider(props) {
   const {
     data: user,
@@ -43,8 +58,8 @@ function AuthProvider(props) {
     // have to wait until the app mounts before we kick off
     // the request.
     // We're moving from "Fetch on render" to "Render WHILE you fetch"!
-    const userPromise = getUser()
-    run(userPromise)
+    // run(userPromise)
+    run(bootstrapPromise)
   }, [run])
 
   const login = React.useCallback(
