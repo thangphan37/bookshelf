@@ -1,4 +1,5 @@
 import React from 'react'
+import {unstable_trace as trace, unstable_wrap as wrap} from 'scheduler/tracing'
 
 function useSafeDispatch(dispatch) {
   const mounted = React.useRef(false)
@@ -50,16 +51,18 @@ function useAsync(initialState) {
         )
       }
       safeSetState({status: 'pending'})
-      return promise.then(
-        data => {
-          setData(data)
-          return data
-        },
-        error => {
-          setError(error)
-          return error
-        },
-      )
+      trace('call sync', performance.now(), () => {
+        return promise.then(
+          wrap(data => {
+            setData(data)
+            return data
+          }),
+          wrap(error => {
+            setError(error)
+            return error
+          }),
+        )
+      })
     },
     [safeSetState, setData, setError],
   )
