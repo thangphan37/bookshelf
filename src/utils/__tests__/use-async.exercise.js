@@ -59,3 +59,141 @@ test.todo('No state updates happen if the component is unmounted while pending')
 // 🐨 ensure that console.error is not called (React will call console.error if updates happen when unmounted)
 
 test.todo('calling "run" without a promise results in an early error')
+
+import {renderHook, act} from '@testing-library/react-hooks'
+import {useAsync} from '../hooks'
+
+function getAysncState(overrides) {
+  return {
+    data: null,
+    isIdle: true,
+    isLoading: false,
+    isError: false,
+    isSuccess: false,
+
+    error: null,
+    status: 'idle',
+    run: expect.any(Function),
+    reset: expect.any(Function),
+    setData: expect.any(Function),
+    setError: expect.any(Function),
+    ...overrides,
+  }
+}
+
+function deferred() {
+  let resolve, reject
+
+  const promise = new Promise((res, rej) => {
+    ;(resolve = res), (reject = rej)
+  })
+
+  return {promise, resolve, reject}
+}
+test('calling run with a promise which resolves', async () => {
+  const {promise, resolve} = deferred()
+  const {result} = renderHook(() => useAsync())
+  const defaultState = getAysncState()
+
+  expect(result.current).toEqual(defaultState)
+  let p
+  act(() => {
+    p = result.current.run(promise)
+  })
+
+  expect(result.current.status).toBe('pending')
+
+  await act(async () => {
+    resolve()
+    await p
+  })
+  expect(result.current.status).toBe('resolved')
+
+  act(() => {
+    result.current.reset()
+  })
+  expect(result.current.status).toBe('idle')
+})
+
+test('calling run with a promise which rejects', async () => {
+  const {promise, reject} = deferred()
+  const {result} = renderHook(() => useAsync())
+  const defaultState = getAysncState()
+
+  expect(result.current).toEqual(defaultState)
+  let p
+  act(() => {
+    p = result.current.run(promise).catch(() => {})
+  })
+
+  expect(result.current.status).toBe('pending')
+
+  await act(async () => {
+    reject()
+    await p
+  })
+  expect(result.current.status).toBe('rejected')
+
+  act(() => {
+    result.current.reset()
+  })
+  expect(result.current.status).toBe('idle')
+})
+
+test('can specify an initial state', () => {
+  const initalState = {
+    data: [],
+  }
+
+  const {result} = renderHook(() => useAsync(initalState))
+  const state = getAysncState({data: []})
+
+  expect(result.current).toEqual(state)
+})
+
+test('can set state data', () => {
+  const {result} = renderHook(() => useAsync())
+  const state = getAysncState({
+    data: [],
+    status: 'resolved',
+    isSuccess: true,
+    isIdle: false,
+  })
+
+  act(() => {
+    result.current.setData([])
+  })
+  expect(result.current).toEqual(state)
+})
+
+test('can set state error', () => {
+  const {result} = renderHook(() => useAsync())
+
+  const state = getAysncState({
+    status: 'rejected',
+    isError: true,
+    isIdle: false,
+    error: {message: 'error'},
+  })
+
+  act(() => {
+    result.current.setError({message: 'error'})
+  })
+  expect(result.current).toEqual(state)
+})
+
+test('No state updates happen if the component is unmounted while pending', () => {
+  const {result, unmount} = renderHook(() => useAsync())
+
+  const spy = jest.spyOn(console, 'error')
+  unmount()
+  expect(spy).toHaveBeenCalledTimes(0)
+})
+
+test('calling "run" without a promise results in an early error', async () => {
+  const {result, unmount} = renderHook(() => useAsync())
+
+  expect(() => result.current.run()).toThrowErrorMatchingInlineSnapshot(
+    `"The argument passed to useAsync().run must be a promise. Maybe a function that's passed isn't returning anything?"`,
+  )
+})
