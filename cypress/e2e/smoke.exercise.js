@@ -1,8 +1,84 @@
 // 🐨 you'll want a fake user to register as:
 // import {buildUser} from '../support/generate'
-
+import {buildUser} from '../support/generate'
 describe('smoke', () => {
   it('should allow a typical user flow', () => {
+    cy.visit('/')
+    cy.findByRole('button', {name: /register/i}).click()
+    cy.findByRole('dialog').within(() => {
+      const {username, password} = buildUser()
+      cy.get('#username').type(username)
+      cy.get('#password').type(password)
+      cy.findByRole('button', {name: /register/i}).click()
+    })
+
+    cy.get('nav').within(() => {
+      cy.get('li')
+        .contains('Discover')
+        .should('have.attr', 'href', '/discover')
+        .click()
+    })
+
+    cy.get('main').within(() => {
+      cy.get('#search').type('How to Be an Antiracist').type('{enter}')
+      cy.findByRole('listitem').within(() => {
+        cy.findByRole('button', {name: /add to list/i})
+          .should('exist')
+          .click()
+      })
+      cy.findByRole('button', {name: /mark as read/i}).should('exist')
+    })
+
+    cy.get('nav').within(() => {
+      cy.get('li')
+        .contains('Reading List')
+        .should('have.attr', 'href', '/list')
+        .click()
+    })
+
+    cy.get('main').should('have.length', 1)
+    cy.get('main').within(() => {
+      cy.get('li').contains('How to Be an Antiracist').click()
+      cy.get('textarea').type('Notes')
+      cy.get('svg[aria-label="loading"]').should('exist')
+      cy.get('svg[aria-label="loading"]').should('exist')
+      cy.findByRole('button', {name: /mark as read/i})
+        .should('exist')
+        .click()
+      cy.get('input[value="5"]').click({force: true})
+    })
+
+    cy.get('nav').within(() => {
+      cy.get('li')
+        .contains('Finished Books')
+        .should('have.attr', 'href', '/finished')
+        .click()
+    })
+
+    cy.get('main').should('have.length', 1)
+
+    cy.get('main').within(() => {
+      cy.get('input[value="5"]').should('have.attr', 'checked', 'checked')
+      cy.get('li').contains('How to Be an Antiracist').click()
+    })
+
+    cy.get('main').within(() => {
+      cy.findByRole('button', {name: /remove from list/i})
+        .should('exist')
+        .click()
+    })
+
+    cy.get('nav').within(() => {
+      cy.get('li')
+        .contains('Finished Books')
+        .should('have.attr', 'href', '/finished')
+        .click()
+    })
+
+    cy.get('main').within(() => {
+      cy.get('ul').should('have.length', 0)
+    })
+
     // 🐨 create a fake user
     // 🐨 visit '/' (📜 https://docs.cypress.io/api/commands/visit.html)
     // 🐨 find the button named "register" and click it
